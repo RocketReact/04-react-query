@@ -35,8 +35,8 @@ export default function App() {
   useEffect(() => {
     if (isSuccess && data?.results.length === 0) {
       toast.error("No movies found for your request.\n");
+      setPage(1);
     }
-    setPage(1);
   }, [data, isSuccess]);
   return (
     <div className={css.app}>
