@@ -9,11 +9,12 @@ import Loader from "../Loader/Loader.tsx";
 import ErrorMessage from "../ErrorMessage/ErrorMessage.tsx";
 import MovieModal from "../MovieModal/MovieModal.tsx";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import ReactPaginate from "react-paginate";
 
 export default function App() {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [query, setQuery] = useState("");
-  // const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1);
 
   const handleMovieSelect = (movie: Movie) => {
     setMovie(movie);
@@ -23,8 +24,8 @@ export default function App() {
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["movieId", query],
-    queryFn: async () => await movieService(query),
+    queryKey: ["movieId", query, page],
+    queryFn: async () => await movieService(query, page),
     enabled: query !== "",
     placeholderData: keepPreviousData,
   });
@@ -56,16 +57,29 @@ export default function App() {
     // }
   };
   useEffect(() => {
-    if (data?.length === 0) {
+    if (data?.results?.length === 0) {
       toast.error("No movies found for your request.\n");
     }
   }, [data]);
   return (
     <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
+      {data && data.results.length > 1 && (
+        <ReactPaginate
+          pageCount={data.total_pages}
+          pageRangeDisplayed={5}
+          marginPagesDisplayed={1}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+          forcePage={page - 1}
+          containerClassName={css.pagination}
+          activeClassName={css.active}
+          nextLabel="→"
+          previousLabel="←"
+        />
+      )}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      {data && <MovieGrid movies={data} onSelect={handleMovieSelect} />}
+      {data && <MovieGrid movies={data.results} onSelect={handleMovieSelect} />}
       {movie && <MovieModal movie={movie} onClose={handleCloseModal} />}
       <Toaster
         position="top-center"
