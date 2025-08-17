@@ -57,14 +57,14 @@ export default function App() {
     // }
   };
   useEffect(() => {
-    if (data?.results?.length === 0) {
+    if (data?.results.length === 0) {
       toast.error("No movies found for your request.\n");
     }
   }, [data]);
   return (
     <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
-      {data && data.results.length > 1 && (
+      {data && data?.results.length > 1 && (
         <ReactPaginate
           pageCount={data.total_pages}
           pageRangeDisplayed={5}
@@ -79,7 +79,9 @@ export default function App() {
       )}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      {data && <MovieGrid movies={data.results} onSelect={handleMovieSelect} />}
+      {data?.results && (
+        <MovieGrid movies={data.results} onSelect={handleMovieSelect} />
+      )}
       {movie && <MovieModal movie={movie} onClose={handleCloseModal} />}
       <Toaster
         position="top-center"
