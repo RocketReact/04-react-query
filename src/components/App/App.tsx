@@ -23,48 +23,25 @@ export default function App() {
     setMovie(null);
   };
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["movieId", query, page],
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ["movies", query, page],
     queryFn: async () => await movieService(query, page),
     enabled: query !== "",
     placeholderData: keepPreviousData,
   });
   const handleSearch = (query: string): void => {
     setQuery(query);
-
-    // setLoading(true);
-    // try {
-    //   const results = await movieService(query);
-    //
-    //   if (results.length === 0) {
-    //     setIsError(true);
-    //     toast.error("No movies found for your request.\n");
-    //     setMovies([]);
-    //     return;
-    //   }
-    //   setIsError(false);
-    //   setMovies(results);
-    // } catch (error) {
-    //   setIsError(true);
-    //   const errorMessage =
-    //     error instanceof Error
-    //       ? error.message
-    //       : "An unexpected error occurred. \n";
-    //   toast.error(errorMessage);
-    //   setMovies([]);
-    // } finally {
-    //   setLoading(false);
-    // }
   };
   useEffect(() => {
-    if (data?.results.length === 0) {
+    if (isSuccess && data?.results.length === 0) {
       toast.error("No movies found for your request.\n");
     }
-  }, [data]);
+    setPage(1);
+  }, [data, isSuccess]);
   return (
     <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
-      {data && data?.results.length > 1 && (
+      {isSuccess && data?.results.length > 1 && (
         <ReactPaginate
           pageCount={data.total_pages}
           pageRangeDisplayed={5}
@@ -79,7 +56,7 @@ export default function App() {
       )}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      {data?.results && (
+      {isSuccess && data?.results.length > 0 && (
         <MovieGrid movies={data.results} onSelect={handleMovieSelect} />
       )}
       {movie && <MovieModal movie={movie} onClose={handleCloseModal} />}
