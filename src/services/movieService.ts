@@ -7,7 +7,6 @@ interface MovieResponse {
   results: Movie[];
   total_pages: number;
 }
-
 export default async function movieService(
   query: string,
   page: number,
