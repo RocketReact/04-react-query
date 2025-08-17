@@ -8,7 +8,7 @@ export default defineConfig({
         process.env.NODE_ENV === 'production'
             ? process.env.VERCEL
                 ? '/'
-                : '/03-react-movies/'
+                : '/04-react-query/'
             : './',
     build: {
         sourcemap: true,

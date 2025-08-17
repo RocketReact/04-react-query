@@ -1,6 +1,6 @@
 import css from "./App.module.css";
 import movieService from "../../services/movieService.ts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SearchBar from "../SearchBar/SearchBar.tsx";
 import { toast, Toaster } from "react-hot-toast";
 import type { Movie } from "../../types/movie.ts";
@@ -8,12 +8,12 @@ import MovieGrid from "../MovieGrid/MovieGrid.tsx";
 import Loader from "../Loader/Loader.tsx";
 import ErrorMessage from "../ErrorMessage/ErrorMessage.tsx";
 import MovieModal from "../MovieModal/MovieModal.tsx";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export default function App() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
   const [movie, setMovie] = useState<Movie | null>(null);
+  const [query, setQuery] = useState("");
+  // const [page, setPage] = useState(1);
 
   const handleMovieSelect = (movie: Movie) => {
     setMovie(movie);
@@ -21,38 +21,51 @@ export default function App() {
   const handleCloseModal = () => {
     setMovie(null);
   };
-  const handleSearch = async (query: string): Promise<void> => {
-    setLoading(true);
-    try {
-      const results = await movieService(query);
 
-      if (results.length === 0) {
-        setIsError(true);
-        toast.error("No movies found for your request.\n");
-        setMovies([]);
-        return;
-      }
-      setIsError(false);
-      setMovies(results);
-    } catch (error) {
-      setIsError(true);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred. \n";
-      toast.error(errorMessage);
-      setMovies([]);
-    } finally {
-      setLoading(false);
-    }
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["movieId", query],
+    queryFn: async () => await movieService(query),
+    enabled: query !== "",
+    placeholderData: keepPreviousData,
+  });
+  const handleSearch = (query: string): void => {
+    setQuery(query);
+
+    // setLoading(true);
+    // try {
+    //   const results = await movieService(query);
+    //
+    //   if (results.length === 0) {
+    //     setIsError(true);
+    //     toast.error("No movies found for your request.\n");
+    //     setMovies([]);
+    //     return;
+    //   }
+    //   setIsError(false);
+    //   setMovies(results);
+    // } catch (error) {
+    //   setIsError(true);
+    //   const errorMessage =
+    //     error instanceof Error
+    //       ? error.message
+    //       : "An unexpected error occurred. \n";
+    //   toast.error(errorMessage);
+    //   setMovies([]);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
-
+  useEffect(() => {
+    if (data?.length === 0) {
+      toast.error("No movies found for your request.\n");
+    }
+  }, [data]);
   return (
     <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
-      {loading && <Loader />}
+      {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      <MovieGrid movies={movies} onSelect={handleMovieSelect} />
+      {data && <MovieGrid movies={data} onSelect={handleMovieSelect} />}
       {movie && <MovieModal movie={movie} onClose={handleCloseModal} />}
       <Toaster
         position="top-center"
