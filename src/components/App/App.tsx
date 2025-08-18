@@ -30,12 +30,12 @@ export default function App() {
     placeholderData: keepPreviousData,
   });
   const handleSearch = (query: string): void => {
+    setPage(1);
     setQuery(query);
   };
   useEffect(() => {
     if (isSuccess && data?.results.length === 0) {
       toast.error("No movies found for your request.\n");
-      setPage(1);
     }
   }, [data, isSuccess]);
   return (
